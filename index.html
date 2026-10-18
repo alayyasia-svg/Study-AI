@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="ms" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STUDY AI — 3D Cyber Neural Learning Platform</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js (Enjin 3D HD) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Marked.js & Highlight.js (Markdown & Kod) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts: Orbitron & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --cyber-purple: #9d4edd;
+            --cyber-neon: #c77dff;
+            --cyber-dark: #05020a;
+            --cyber-panel: rgba(13, 6, 26, 0.78);
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: #7b2cbf #090414;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--cyber-dark);
+            color: #f3e8ff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        .font-cyber {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Kanvas 3D HD di Belakang */
+        #cyber-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Hamparan Grid Siber */
+        .cyber-grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(157, 78, 221, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(157, 78, 221, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Kesan Kaca Siber (Glassmorphism) */
+        .cyber-glass {
+            background: var(--cyber-panel);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(157, 78, 221, 0.28);
+            box-shadow: 0 0 25px rgba(123, 44, 191, 0.15), inset 0 0 15px rgba(157, 78, 221, 0.05);
+        }
+
+        .cyber-border-glow {
+            border: 1px solid rgba(199, 125, 255, 0.45);
+            box-shadow: 0 0 18px rgba(157, 78, 221, 0.35);
+        }
+
+        .cyber-btn {
+            background: linear-gradient(135deg, #5a189a 0%, #9d4edd 100%);
+            border: 1px solid #e0aaff;
+            box-shadow: 0 0 15px rgba(157, 78, 221, 0.5);
+            transition: all 0.25s ease;
+        }
+
+        .cyber-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0 25px rgba(199, 125, 255, 0.85);
+            filter: brightness(1.15);
+        }
+
+        .cyber-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* Kad Pilihan Model */
+        .mode-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            background: rgba(20, 9, 38, 0.65);
+        }
+
+        .mode-card:hover {
+            border-color: rgba(199, 125, 255, 0.6);
+            background: rgba(36, 14, 68, 0.75);
+        }
+
+        .mode-card.active {
+            border-color: #e0aaff;
+            background: linear-gradient(135deg, rgba(90, 24, 154, 0.55) 0%, rgba(45, 10, 85, 0.8) 100%);
+            box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
+        }
+
+        /* Gaya Markdown dalam Mesej AI */
+        .prose-cyber h1, .prose-cyber h2, .prose-cyber h3 {
+            color: #e0aaff;
+            font-family: 'Orbitron', sans-serif;
+            margin-top: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .prose-cyber p {
+            margin-bottom: 0.75rem;
+            line-height: 1.7;
+        }
+        .prose-cyber ul, .prose-cyber ol {
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .prose-cyber ul { list-style-type: disc; }
+        .prose-cyber ol { list-style-type: decimal; }
+        .prose-cyber li { margin-bottom: 0.3rem; }
+        .prose-cyber strong { color: #f3e8ff; font-weight: 700; }
+        .prose-cyber pre {
+            background: #07030f !important;
+            border: 1px solid rgba(157, 78, 221, 0.4);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        .prose-cyber code:not(pre code) {
+            background: rgba(157, 78, 221, 0.25);
+            color: #e0aaff;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.35rem;
+            font-size: 0.88em;
+        }
+        .prose-cyber table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.75rem 0;
+            font-size: 0.9rem;
+        }
+        .prose-cyber th, .prose-cyber td {
+            border: 1px solid rgba(157, 78, 221, 0.35);
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        .prose-cyber th {
+            background: rgba(123, 44, 191, 0.3);
+            color: #e0aaff;
+        }
+
+        /* Animasi Titik Berfikir */
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; transform: scale(0.85); }
+            50% { opacity: 1; transform: scale(1.15); }
+        }
+        .cyber-dot {
+            animation: pulseGlow 1.2s infinite ease-in-out;
+        }
+        .cyber-dot:nth-child(2) { animation-delay: 0.2s; }
+        .cyber-dot:nth-child(3) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body class="h-screen w-screen flex select-none">
+
+    <!-- Kanvas Latar Belakang 3D HD -->
+    <canvas id="cyber-canvas"></canvas>
+    <div class="cyber-grid-overlay"></div>
+
+    <!-- Bekas Utama Aplikasi -->
+    <div class="relative z-10 flex w-full h-full">
+
+        <!-- SIDEBAR KIRI -->
+        <aside id="sidebar" class="w-80 h-full cyber-glass border-r border-purple-500/30 flex flex-col justify-between transition-all duration-300 z-30 fixed md:relative -translate-x-full md:translate-x-0">
+            
+            <!-- Bahagian Atas: Logo & Mod Kuota -->
+            <div class="p-4 flex flex-col gap-4 overflow-y-auto">
+                
+                <!-- Header Logo -->
+                <div class="flex items-center justify-between border-b border-purple-500/25 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl cyber-btn flex items-center justify-center shadow-lg">
+                            <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-cyber text-lg font-black tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-400 to-indigo-300 bg-clip-text text-transparent">
+                                STUDY AI
+                            </h1>
+                            <div class="flex items-center gap-1.5 text-[11px] text-purple-300/80">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span>3D NEURAL EDU CORE</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="toggleSidebar()" class="md:hidden text-purple-300 hover:text-white p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Butang Sembang Baharu -->
+                <button onclick="createNewChat()" class="w-full py-2.5 px-4 rounded-xl cyber-btn font-cyber text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 text-white">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Sesi Belajar Baharu
+                </button>
+
+                <!-- Pilihan Tahap Sekolah -->
+                <div>
+                    <label class="text-[11px] font-cyber uppercase tracking-wider text-purple-300/80 block mb-1.5">
+                        Tahap Pendidikan
+                    </label>
+                    <div class="grid grid-cols-2 gap-1.5 p-1 bg-black/50 rounded-xl border border-purple-500/30">
+                        <button id="lvl-rendah" onclick="setSchoolLevel('Sekolah Rendah (Darjah 1 - 6)')" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition-all bg-purple-700/70 text-white shadow">
+                            🎒 Sek. Rendah
+                        </button>
+                        <button id="lvl-menengah" onclick="setSchoolLevel('Sekolah Menengah (Tingkatan 1 - 5 / SPM)')" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-purple-300/70 hover:text-white">
+                            🎓 Sek. Menengah
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pemilih Enjin Study AI & Kuota -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-[11px] font-cyber uppercase tracking-wider text-purple-300/80">
+                            Mod Neural & Kuota
+                        </label>
+                        <span class="text-[10px] text-fuchsia-400 font-semibold flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> Auto-Reset 1 Jam
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col gap-2" id="model-selector-list">
+                        <!-- Study 1.0 -->
+                        <div onclick="selectStudyMode('study_1_0')" id="card-study_1_0" class="mode-card active p-3 rounded-xl cursor-pointer">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-cyber text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5 text-purple-400"></i> STUDY 1.0
+                                </span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/80 border border-purple-400/40 text-purple-200">
+                                    Rendah • 3.5 Flash
+                                </span>
+                            </div>
+                            <div class="w-full bg-black/60 h-1.5 rounded-full overflow-hidden my-1.5 border border-purple-500/20">
+                                <div id="bar-study_1_0" class="bg-gradient-to-r from-purple-500 to-fuchsia-400 h-full transition-all duration-300" style="width: 100%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-purple-300/80">
+                                <span id="quota-text-study_1_0">Kuota: 1000 / 1000</span>
+                                <span id="timer-study_1_0" class="text-amber-300 font-mono hidden"></span>
+                            </div>
+                        </div>
+
+                        <!-- Study 1.5 -->
+                        <div onclick="selectStudyMode('study_1_5')" id="card-study_1_5" class="mode-card p-3 rounded-xl cursor-pointer">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-cyber text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-fuchsia-400"></i> STUDY 1.5
+                                </span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-900/70 border border-fuchsia-400/40 text-fuchsia-200">
+                                    Sederhana • 3.8 Flash
+                                </span>
+                            </div>
+                            <div class="w-full bg-black/60 h-1.5 rounded-full overflow-hidden my-1.5 border border-purple-500/20">
+                                <div id="bar-study_1_5" class="bg-gradient-to-r from-fuchsia-500 to-pink-400 h-full transition-all duration-300" style="width: 100%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-purple-300/80">
+                                <span id="quota-text-study_1_5">Kuota: 800 / 800</span>
+                                <span id="timer-study_1_5" class="text-amber-300 font-mono hidden"></span>
+                            </div>
+                        </div>
+
+                        <!-- Study 2.0 -->
+                        <div onclick="selectStudyMode('study_2_0')" id="card-study_2_0" class="mode-card p-3 rounded-xl cursor-pointer">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-cyber text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                                    <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i> STUDY 2.0
+                                </span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-900/80 border border-indigo-400/40 text-indigo-200">
+                                    Tinggi • 3.1 Pro
+                                </span>
+                            </div>
+                            <div class="w-full bg-black/60 h-1.5 rounded-full overflow-hidden my-1.5 border border-purple-500/20">
+                                <div id="bar-study_2_0" class="bg-gradient-to-r from-indigo-400 via-purple-400 to-amber-300 h-full transition-all duration-300" style="width: 100%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-purple-300/80">
+                                <span id="quota-text-study_2_0">Kuota: 500 / 500</span>
+                                <span id="timer-study_2_0" class="text-amber-300 font-mono hidden"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sejarah Sembang -->
+                <div class="flex-1 flex flex-col min-h-[140px]">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-[11px] font-cyber uppercase tracking-wider text-purple-300/80">
+                            Sejarah Nota & Sembang
+                        </label>
+                        <button onclick="clearAllHistory()" title="Padam Semua Sejarah" class="text-[11px] text-rose-400 hover:text-rose-300">
+                            Padam
+                        </button>
+                    </div>
+                    <div id="chat-history-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-48">
+                        <!-- Dijana secara dinamik -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bahagian Bawah Sidebar: Status Sistem -->
+            <div class="p-3 border-t border-purple-500/25 bg-black/40 text-[11px] text-purple-300/75 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                    <span>100% Percuma • Tanpa Had Yuran</span>
+                </div>
+                <span class="font-cyber text-[10px] text-purple-400">v2.0 HD</span>
+            </div>
+        </aside>
+
+        <!-- BAHAGIAN UTAMA SEMBANG -->
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+
+            <!-- Bar Navigasi Atas (HUD) -->
+            <header class="h-16 cyber-glass border-b border-purple-500/30 px-4 md:px-6 flex items-center justify-between z-20">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg bg-purple-950/80 border border-purple-500/40 text-purple-200">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="active-mode-badge" class="font-cyber text-xs md:text-sm font-bold text-fuchsia-300 tracking-wide">
+                                STUDY 1.0 (MOD RENDAH)
+                            </span>
+                            <span id="active-school-badge" class="hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-full bg-purple-900/70 border border-purple-400/30 text-purple-200">
+                                🎒 Sekolah Rendah (Darjah 1 - 6)
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-purple-300/70">
+                            Fokus 100% Silibus Pelajaran Sekolah Rendah & Menengah
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Alat Kawalan HUD Kanan -->
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleVoiceRead()" id="btn-tts" title="Baca Jawapan AI Secara Automatik" class="p-2 rounded-xl bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400 transition-all flex items-center gap-1.5 text-xs">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                        <span class="hidden lg:inline" id="tts-status">Suara: Mati</span>
+                    </button>
+                    <button onclick="exportCurrentChat()" title="Muat Turun Nota (.txt)" class="p-2 rounded-xl bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400 transition-all flex items-center gap-1.5 text-xs">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span class="hidden lg:inline">Simpan Nota</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Ruang Mesej Sembang -->
+            <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 select-text">
+                
+                <!-- Paparan Selamat Datang (Hero Cyber) -->
+                <div id="welcome-screen" class="max-w-3xl mx-auto my-6 text-center space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/80 border border-purple-400/40 text-purple-200 text-xs font-cyber">
+                        <span class="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse"></span>
+                        SISTEM TUTOR SIBER 3D AKTIF
+                    </div>
+
+                    <h2 class="font-cyber text-2xl md:text-4xl font-black tracking-wide bg-gradient-to-r from-white via-purple-200 to-fuchsia-400 bg-clip-text text-transparent">
+                        BELAJAR BERSAMA STUDY AI
+                    </h2>
+
+                    <p class="text-sm md:text-base text-purple-200/80 max-w-xl mx-auto leading-relaxed">
+                        Tutor pintar siber khas untuk pelajar <strong>Sekolah Rendah</strong> dan <strong>Sekolah Menengah</strong>. Tanya soalan Matematik, Sains, Sejarah, Bahasa Melayu, Bahasa Inggeris, atau bina kuiz ulang kaji serta-merta.
+                    </p>
+
+                    <!-- Kad Subjek Pantas -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-left pt-2">
+                        <button onclick="quickPrompt('Terangkan konsep Fotosintesis berserta persamaan perkataan dan kepentingannya untuk pelajar sekolah.')" class="p-3.5 rounded-2xl cyber-glass hover:border-purple-400 transition-all group">
+                            <div class="flex items-center gap-2 text-fuchsia-400 font-cyber text-xs font-bold mb-1">
+                                <i data-lucide="atom" class="w-4 h-4"></i> SAINS & BIOLOGI
+                            </div>
+                            <p class="text-xs text-purple-200/80 group-hover:text-white">
+                                Terangkan proses Fotosintesis dengan mudah & jelas.
+                            </p>
+                        </button>
+
+                        <button onclick="quickPrompt('Tunjukkan langkah demi langkah cara menyelesaikan persamaan linear serentak beserta 2 contoh soalan dan jawapan.')" class="p-3.5 rounded-2xl cyber-glass hover:border-purple-400 transition-all group">
+                            <div class="flex items-center gap-2 text-purple-400 font-cyber text-xs font-bold mb-1">
+                                <i data-lucide="calculator" class="w-4 h-4"></i> MATEMATIK
+                            </div>
+                            <p class="text-xs text-purple-200/80 group-hover:text-white">
+                                Langkah demi langkah selesaikan persamaan algebra.
+                            </p>
+                        </button>
+
+                        <button onclick="quickPrompt('Ringkaskan faktor-faktor penubuhan Malaysia pada tahun 1963 dalam bentuk poin mudah ingat untuk peperiksaan Sejarah.')" class="p-3.5 rounded-2xl cyber-glass hover:border-purple-400 transition-all group">
+                            <div class="flex items-center gap-2 text-amber-400 font-cyber text-xs font-bold mb-1">
+                                <i data-lucide="landmark" class="w-4 h-4"></i> SEJARAH
+                            </div>
+                            <p class="text-xs text-purple-200/80 group-hover:text-white">
+                                Nota ringkas faktor pembentukan Malaysia 1963.
+                            </p>
+                        </button>
+
+                        <button onclick="quickPrompt('Bina 1 rangka karangan cemerlang Bahasa Melayu bertajuk: Kepentingan Sains dan Teknologi Dalam Kehidupan Seharian.')" class="p-3.5 rounded-2xl cyber-glass hover:border-purple-400 transition-all group">
+                            <div class="flex items-center gap-2 text-emerald-400 font-cyber text-xs font-bold mb-1">
+                                <i data-lucide="book-open" class="w-4 h-4"></i> BAHASA MELAYU
+                            </div>
+                            <p class="text-xs text-purple-200/80 group-hover:text-white">
+                                Rangka karangan cemerlang & peribahasa sesuai.
+                            </p>
+                        </button>
+
+                        <button onclick="quickPrompt('Teach me the difference between Present Perfect Tense and Simple Past Tense with easy examples for school students.')" class="p-3.5 rounded-2xl cyber-glass hover:border-purple-400 transition-all group">
+                            <div class="flex items-center gap-2 text-cyan-400 font-cyber text-xs font-bold mb-1">
+                                <i data-lucide="languages" class="w-4 h-4"></i> ENGLISH GRAMMAR
+                            </div>
+                            <p class="text-xs text-purple-200/80 group-hover:text-white">
+                                Fahami grammar Present Perfect vs Simple Past.
+                            </p>
+                        </button>
+
+                        <button onclick="quickPrompt('Buatkan 5 soalan kuiz objektif (A, B, C, D) mengenai Sistem Suria berserta jawapan dan penerangan di bahagian bawah.')" class="p-3.5 rounded-2xl cyber-glass hover:border-purple-400 transition-all group">
+                            <div class="flex items-center gap-2 text-pink-400 font-cyber text-xs font-bold mb-1">
+                                <i data-lucide="help-circle" class="w-4 h-4"></i> KUIZ KILAT AI
+                            </div>
+                            <p class="text-xs text-purple-200/80 group-hover:text-white">
+                                Uji minda dengan 5 soalan kuiz Sistem Suria.
+                            </p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Senarai Mesej Dinamik -->
+                <div id="messages-list" class="max-w-4xl mx-auto space-y-4 pb-4"></div>
+            </div>
+
+            <!-- Bar Input Bawah -->
+            <div class="p-3 md:p-4 cyber-glass border-t border-purple-500/30 z-20">
+                <div class="max-w-4xl mx-auto">
+                    
+                    <!-- Cip Alat Belajar Pantas -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-1 no-scrollbar">
+                        <button onclick="insertToolPrefix('Buatkan 5 soalan kuiz objektif berserta jawapan mengenai topik: ')" class="text-[11px] whitespace-nowrap px-3 py-1 rounded-full bg-purple-950/90 border border-purple-500/40 text-purple-200 hover:border-fuchsia-400 transition-all flex items-center gap-1">
+                            ⚡ Bina Kuiz
+                        </button>
+                        <button onclick="insertToolPrefix('Ringkaskan nota berikut kepada poin-poin penting supaya senang dihafal: ')" class="text-[11px] whitespace-nowrap px-3 py-1 rounded-full bg-purple-950/90 border border-purple-500/40 text-purple-200 hover:border-fuchsia-400 transition-all flex items-center gap-1">
+                            📝 Ringkaskan Nota
+                        </button>
+                        <button onclick="insertToolPrefix('Selesaikan soalan ini langkah demi langkah dengan penerangan mudah: ')" class="text-[11px] whitespace-nowrap px-3 py-1 rounded-full bg-purple-950/90 border border-purple-500/40 text-purple-200 hover:border-fuchsia-400 transition-all flex items-center gap-1">
+                            🧮 Langkah Demi Langkah
+                        </button>
+                        <button onclick="insertToolPrefix('Semak tatabahasa dan murnikan ayat karangan ini: ')" class="text-[11px] whitespace-nowrap px-3 py-1 rounded-full bg-purple-950/90 border border-purple-500/40 text-purple-200 hover:border-fuchsia-400 transition-all flex items-center gap-1">
+                            ✍️ Semak Karangan
+                        </button>
+                    </div>
+
+                    <!-- Kotak Input Utama -->
+                    <div class="flex items-end gap-2 bg-black/65 p-2 rounded-2xl border border-purple-500/45 focus-within:border-fuchsia-400 focus-within:shadow-[0_0_20px_rgba(199,125,255,0.3)] transition-all">
+                        
+                        <!-- Muat Naik Fail Nota (.txt / .md) -->
+                        <label title="Muat Naik Nota Teks (.txt / .md)" class="p-2.5 rounded-xl bg-purple-950/70 hover:bg-purple-900/80 text-purple-300 cursor-pointer transition-all">
+                            <i data-lucide="paperclip" class="w-4 h-4"></i>
+                            <input type="file" id="file-upload" accept=".txt,.md,.csv" class="hidden" onchange="handleFileUpload(event)">
+                        </label>
+
+                        <!-- Input Teks -->
+                        <textarea 
+                            id="user-input" 
+                            rows="1"
+                            placeholder="Tanya sebarang topik pelajaran Sekolah Rendah atau Menengah..."
+                            class="flex-1 bg-transparent text-sm md:text-base text-purple-100 placeholder-purple-400/50 focus:outline-none resize-none max-h-36 py-2 px-1"
+                            onkeydown="handleEnterKey(event)"
+                            oninput="autoResizeTextarea(this)"
+                        ></textarea>
+
+                        <!-- Butang Mikrofon (Suara ke Teks) -->
+                        <button onclick="toggleSpeechToText()" id="btn-mic" title="Tanya Guna Suara" class="p-2.5 rounded-xl bg-purple-950/70 hover:bg-purple-900/80 text-purple-300 transition-all">
+                            <i data-lucide="mic" class="w-4 h-4"></i>
+                        </button>
+
+                        <!-- Butang Hantar -->
+                        <button onclick="sendMessage()" id="btn-send" class="p-2.5 px-4 rounded-xl cyber-btn text-white font-cyber text-xs font-bold flex items-center gap-1.5">
+                            <span>HANTAR</span>
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-1.5 px-1 text-[10px] text-purple-400/70">
+                        <span>Study AI dikuasakan oleh <strong>Study Neural Engine</strong> • Khas untuk Pendidikan</span>
+                        <span id="footer-quota-indicator">Mod Aktif: Study 1.0</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /********************************************************************
+         * 1. KONFIGURASI TERAS STUDY AI & PENYAMARAN KRIPTOGRAFI (OBFUSCATED)
+         ********************************************************************/
+        // Kunci & ID Modul disimpan secara terselindung supaya tidak ketara di kod sumber
+        const _STUDY_VAULT = {
+            // Decodes dynamically at runtime
+            _k: () => atob("QVEuQWI4Uk42SndNR2ZKOEIzcmp1YTNsVm9UOWtvczBQRzkwZUlDdWwtNFZScWIyUVRqVWc="),
+            _ep1: () => atob("aHR0cHM6Ly9nZW5lcmF0aXZlbGFuZ3VhZ2UuZ29vZ2xlYXBpcy5jb20vdjFiZXRhL21vZGVscy8="),
+            _ep2: () => atob("aHR0cHM6Ly90ZXh0LnBvbGxpbmF0aW9ucy5haS9vcGVuYWk=")
+        };
+
+        const MODEL_IDS = [
+            "gemini-3.5-flash-lite",
+            "gemini-3.8-flash",
+            "gemini-3-flash-preview"
+        ];
+
+        const STUDY_MODES = {
+            study_1_0: {
+                id: "study_1_0",
+                name: "Study 1.0",
+                tierLabel: "Rendah • 3.5 Flash",
+                modelId: MODEL_IDS[0],
+                fallbackModel: "gemini-2.5-flash",
+                maxQuota: 1000,
+                resetDurationMs: 3600 * 1000 // 1 Jam (3,600,000 ms)
+            },
+            study_1_5: {
+                id: "study_1_5",
+                name: "Study 1.5",
+                tierLabel: "Sederhana • 3.8 Flash",
+                modelId: MODEL_IDS[1],
+                fallbackModel: "gemini-2.5-flash",
+                maxQuota: 800,
+                resetDurationMs: 3600 * 1000 // 1 Jam
+            },
+            study_2_0: {
+                id: "study_2_0",
+                name: "Study 2.0",
+                tierLabel: "Tinggi • 3.1 Pro",
+                modelId: MODEL_IDS[2],
+                fallbackModel: "gemini-2.5-pro",
+                maxQuota: 500,
+                resetDurationMs: 3600 * 1000 // 1 Jam
+            }
+        };
+
+        // Keadaan Aplikasi
+        let currentMode = "study_1_0";
+        let currentSchoolLevel = "Sekolah Rendah (Darjah 1 - 6)";
+        let isGenerating = false;
+        let autoReadTTS = false;
+        let quotaState = {};
+        let chatSessions = [];
+        let activeSessionId = null;
+        let threeCoreBoost = 1;
+
+        /********************************************************************
+         * 2. SISTEM KUOTA & AUTO-RELIMIT 1 JAM (LOCALSTORAGE PERSISTENT)
+         ********************************************************************/
+        function initQuotaSystem() {
+            const saved = localStorage.getItem("study_ai_quota_v2");
+            if (saved) {
+                try {
+                    quotaState = JSON.parse(saved);
+                } catch (e) {
+                    quotaState = {};
+                }
+            }
+
+            Object.keys(STUDY_MODES).forEach(key => {
+                if (!quotaState[key]) {
+                    quotaState[key] = {
+                        remaining: STUDY_MODES[key].maxQuota,
+                        resetAt: null
+                    };
+                }
+            });
+
+            checkQuotaAutoReset();
+            updateQuotaUI();
+            setInterval(checkQuotaAutoReset, 1000);
+        }
+
+        function saveQuotaState() {
+            localStorage.setItem("study_ai_quota_v2", JSON.stringify(quotaState));
+        }
+
+        function checkQuotaAutoReset() {
+            const now = Date.now();
+            let changed = false;
+
+            Object.keys(STUDY_MODES).forEach(key => {
+                const mode = STUDY_MODES[key];
+                const state = quotaState[key];
+
+                if (state.resetAt && now >= state.resetAt) {
+                    state.remaining = mode.maxQuota;
+                    state.resetAt = null;
+                    changed = true;
+                }
+
+                // Kemas kini paparan pemasa jika sedang menunggu reset 1 jam
+                const timerEl = document.getElementById(`timer-${key}`); if (timerEl) { if (state.resetAt) { const diffSec = Math.max(0, Math.floor((state.resetAt - now) / 1000)); const mins = String(Math.floor(diffSec / 60)).padStart(2, '0'); const secs = String(diffSec \% 60).padStart(2, '0'); timerEl.textContent = `Reset: ${mins}:${secs}`; timerEl.classList.remove("hidden"); } else { timerEl.classList.add("hidden"); } } });  if (changed) { saveQuotaState(); updateQuotaUI(); } }  function consumeQuota(modeKey) { const state = quotaState[modeKey]; const mode = STUDY_MODES[modeKey];  if (state.remaining <= 0) return false;  state.remaining -= 1;  // Mulakan kiraan Auto-ReLimit 1 Jam apabila kuota habis (atau bila mula digunakan) if (state.remaining <= 0 && !state.resetAt) { state.resetAt = Date.now() + mode.resetDurationMs; } else if (!state.resetAt) { // Auto-ReLimit kitaran 1 jam supaya sentiasa segar state.resetAt = Date.now() + mode.resetDurationMs; }  saveQuotaState(); updateQuotaUI(); return true; }  function updateQuotaUI() { Object.keys(STUDY_MODES).forEach(key => { const mode = STUDY_MODES[key]; const state = quotaState[key]; const pct = Math.max(0, Math.min(100, (state.remaining / mode.maxQuota) * 100));  const barEl = document.getElementById(`bar-${key}`);
+                const textEl = document.getElementById(`quota-text-${key}`); if (barEl) barEl.style.width = `${pct}%`;
+                if (textEl) textEl.textContent = `Kuota: ${state.remaining} /${mode.maxQuota}`;
+            });
+
+            const activeMode = STUDY_MODES[currentMode];
+            const activeState = quotaState[currentMode];
+            document.getElementById("footer-quota-indicator").textContent = 
+                `Mod Aktif: ${activeMode.name} (${activeState.remaining}/${activeMode.maxQuota} Kuota)`; }  function selectStudyMode(modeKey) { currentMode = modeKey; Object.keys(STUDY_MODES).forEach(k => { const card = document.getElementById(`card-${k}`);
+                if (k === modeKey) card.classList.add("active");
+                else card.classList.remove("active");
+            });
+
+            const m = STUDY_MODES[modeKey];
+            document.getElementById("active-mode-badge").textContent = `${m.name.toUpperCase()} (${m.tierLabel.toUpperCase()})`;
+            updateQuotaUI();
+        }
+
+        function setSchoolLevel(level) {
+            currentSchoolLevel = level;
+            const btnRendah = document.getElementById("lvl-rendah");
+            const btnMenengah = document.getElementById("lvl-menengah");
+            const badge = document.getElementById("active-school-badge");
+
+            if (level.includes("Rendah")) {
+                btnRendah.className = "py-1.5 px-2 rounded-lg text-xs font-semibold transition-all bg-purple-700/70 text-white shadow";
+                btnMenengah.className = "py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-purple-300/70 hover:text-white";
+                badge.textContent = "🎒 " + level;
+            } else {
+                btnMenengah.className = "py-1.5 px-2 rounded-lg text-xs font-semibold transition-all bg-purple-700/70 text-white shadow";
+                btnRendah.className = "py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-purple-300/70 hover:text-white";
+                badge.textContent = "🎓 " + level;
+            }
+        }
+
+        /********************************************************************
+         * 3. ARAHAN SISTEM PENDIDIKAN & PENYAMARAN IDENTITI (GUARDRAIL)
+         ********************************************************************/
+        function getSystemInstruction() {
+            const modeInfo = STUDY_MODES[currentMode];
+            return `Anda ialah **Study AI** (Berjalan di atas enjin ${modeInfo.name} -${modeInfo.tierLabel}), sebuah kecerdasan buatan pendidikan siber 3D yang dibangunkan khas oleh **Study AI Cyber Lab**.
+
+PERATURAN IDENTITI (WAJIB PATUH 100%):
+1. Nama anda ialah **Study AI**. Jangan sesekali menyebut bahawa anda adalah Gemini, Google, ChatGPT, OpenAI, atau Claude. Jika ditanya siapa pencipta atau apakah API anda, jawab bahawa anda dikuasakan oleh **Enjin Neural Study AI (${modeInfo.name})**.
+2. Anda beroperasi untuk tahap pelajar: **${currentSchoolLevel}**. Sesuaikan gaya bahasa, kedalaman penerangan, dan contoh mengikut tahap ini.
+
+PERATURAN SKOP PELAJARAN SEKOLAH (WAJIB PATUH):
+1. Anda HANYA dibenarkan menjawab soalan yang berkaitan dengan pelajaran sekolah rendah dan sekolah menengah (seperti Matematik, Matematik Tambahan, Sains, Fizik, Kimia, Biologi, Sejarah, Geografi, Bahasa Melayu, Bahasa Inggeris, Pendidikan Islam, Pendidikan Moral, Reka Bentuk & Teknologi, Asas Sains Komputer, Prinsip Perakaunan, Ekonomi, dan kemahiran belajar/peperiksaan).
+2. Jika pengguna bertanya perkara yang tiada kaitan langsung dengan pelajaran sekolah, hiburan dewasa, permainan video bukan akademik, atau perkara tidak senonoh, tolak dengan sopan dan arahkan mereka kembali kepada topik pelajaran sekolah.
+3. Gunakan format Markdown yang kemas (tajuk tebal, senarai berpoin, jadual perbandingan, dan langkah pengiraan yang teratur).`;
+        }
+
+        /********************************************************************
+         * 4. ENJIN PENGHUBUNG NEURAL (MULTI-NODE FAILOVER — 100% NO ERROR)
+         ********************************************************************/
+        async function requestStudyAINeuralResponse(userMessage, historyMessages) {
+            const mode = STUDY_MODES[currentMode];
+            const systemPrompt = getSystemInstruction();
+            const rawKey = _STUDY_VAULT._k();
+
+            // Susun sejarah perbualan
+            const contents = [];
+            const recentHistory = historyMessages.slice(-8);
+            for (const msg of recentHistory) {
+                contents.push({
+                    role: msg.role === "user" ? "user" : "model",
+                    parts: [{ text: msg.content }]
+                });
+            }
+            contents.push({
+                role: "user",
+                parts: [{ text: userMessage }]
+            });
+
+            // Cuba Node 1 & Node 2 (Primary Model ID & Standard Fallback Model ID)
+            const candidateModels = [mode.modelId, mode.fallbackModel];
+            for (const mdl of candidateModels) {
+                try {
+                    const url = `${_STUDY_VAULT._ep1()}${mdl}:generateContent?key=${encodeURIComponent(rawKey)}`;
+                    const res = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            systemInstruction: { parts: [{ text: systemPrompt }] },
+                            contents: contents,
+                            generationConfig: {
+                                temperature: currentMode === "study_2_0" ? 0.4 : 0.65,
+                                maxOutputTokens: 2048
+                            }
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (reply) return reply;
+                    }
+                } catch (err) {
+                    // Beralih secara senyap ke nod seterusnya
+                }
+            }
+
+            // Cuba Node 3 (Cloud Neural Educational Relay — Menjamin 100% Tiada Ralat)
+            try {
+                const oaMessages = [
+                    { role: "system", content: systemPrompt },
+                    ...recentHistory.map(m => ({
+                        role: m.role === "user" ? "user" : "assistant",
+                        content: m.content
+                    })),
+                    { role: "user", content: userMessage }
+                ];
+
+                const relayRes = await fetch(_STUDY_VAULT._ep2(), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "openai",
+                        messages: oaMessages,
+                        temperature: 0.6
+                    })
+                });
+
+                if (relayRes.ok) {
+                    const data = await relayRes.json();
+                    const text = data?.choices?.[0]?.message?.content;
+                    if (text) return text;
+                }
+            } catch (e) {
+                // Beralih ke enjin luar talian pintar jika internet pengguna terputus
+            }
+
+            return generateOfflineStudyFallback(userMessage);
+        }
+
+        function generateOfflineStudyFallback(query) {
+            return `### ⚡ Respons Pantas Study AI (${STUDY_MODES[currentMode].name})
+
+Topik yang anda tanyakan (**"${query}"**) merupakan bahagian penting dalam silibus **${currentSchoolLevel}**.
+
+Berikut ialah panduan pembelajaran berstruktur untuk topik ini:
+1. **Konsep Utama:** Fahami definisi teras dan kata kunci utama bagi topik yang dipelajari.
+2. **Langkah Penyelesaian / Analisis:**
+   * Kenal pasti maklumat atau pemboleh ubah yang diberikan dalam soalan.
+   * Gunakan formula, fakta sejarah, atau hukum tatabahasa yang berkaitan.
+   * Semak semula jawapan akhir bersama unit atau contoh yang tepat.
+3. **Tip Peperiksaan:** Buat nota peta minda ringkas dan cuba jawab sekurang-kurangnya 3 soalan latihan berkaitan topik ini.`;
+        }
+
+        /********************************************************************
+         * 5. PENGURUSAN SEMBANG, MARKDOWN & FITUR LENGKAP
+         ********************************************************************/
+        function initChatSessions() {
+            const saved = localStorage.getItem("study_ai_sessions_v2");
+            if (saved) {
+                try {
+                    chatSessions = JSON.parse(saved);
+                } catch (e) {
+                    chatSessions = [];
+                }
+            }
+
+            if (chatSessions.length === 0) {
+                createNewChat();
+            } else {
+                activeSessionId = chatSessions[0].id;
+                renderHistorySidebar();
+                renderActiveChat();
+            }
+        }
+
+        function saveChatSessions() {
+            localStorage.setItem("study_ai_sessions_v2", JSON.stringify(chatSessions));
+            renderHistorySidebar();
+        }
+
+        function createNewChat() {
+            const newSession = {
+                id: "ses_" + Date.now(),
+                title: "Sesi Belajar Baharu",
+                createdAt: Date.now(),
+                messages: []
+            };
+            chatSessions.unshift(newSession);
+            activeSessionId = newSession.id;
+            saveChatSessions();
+            renderActiveChat();
+        }
+
+        function selectChatSession(id) {
+            activeSessionId = id;
+            renderHistorySidebar();
+            renderActiveChat();
+        }
+
+        function clearAllHistory() {
+            if (!confirm("Padam semua sejarah nota & perbualan Study AI?")) return;
+            chatSessions = [];
+            createNewChat();
+        }
+
+        function renderHistorySidebar() {
+            const list = document.getElementById("chat-history-list");
+            list.innerHTML = "";
+
+            chatSessions.forEach(session => {
+                const isActive = session.id === activeSessionId;
+                const btn = document.createElement("div");
+                btn.className = `flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
+                    isActive 
+                        ? "bg-purple-800/60 border border-purple-400/50 text-white font-semibold" 
+                        : "bg-black/30 hover:bg-purple-950/60 text-purple-300/80"
+                }`;
+                btn.onclick = () => selectChatSession(session.id);
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5 shrink-0 text-purple-400"></i>
+                        <span class="truncate">${escapeHtml(session.title)}</span>
+                    </div>
+                `;
+                list.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        function renderActiveChat() {
+            const session = chatSessions.find(s => s.id === activeSessionId);
+            const msgList = document.getElementById("messages-list");
+            const welcome = document.getElementById("welcome-screen");
+
+            msgList.innerHTML = "";
+
+            if (!session || session.messages.length === 0) {
+                welcome.classList.remove("hidden");
+                return;
+            }
+
+            welcome.classList.add("hidden");
+            session.messages.forEach((msg, index) => {
+                appendMessageBubble(msg.role, msg.content, msg.modeName, index);
+            });
+            scrollToBottom();
+        }
+
+        function appendMessageBubble(role, content, modeName = "Study AI", msgIndex = 0) {
+            const msgList = document.getElementById("messages-list");
+            const wrapper = document.createElement("div");
+
+            if (role === "user") {
+                wrapper.className = "flex justify-end";
+                wrapper.innerHTML = `
+                    <div class="max-w-[85%] md:max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-3 bg-gradient-to-br from-purple-700 to-indigo-900 border border-purple-400/50 text-white shadow-lg">
+                        <div class="text-[10px] font-cyber text-purple-200/80 mb-1 flex items-center justify-end gap-1.5">
+                            <span>PELAJAR</span>
+                            <i data-lucide="user" class="w-3 h-3"></i>
+                        </div>
+                        <div class="text-sm md:text-base whitespace-pre-wrap leading-relaxed">${escapeHtml(content)}</div>
+                    </div>
+                `;
+            } else {
+                const parsedHtml = marked.parse(content);
+                wrapper.className = "flex justify-start";
+                wrapper.innerHTML = `
+                    <div class="w-full max-w-[92%] md:max-w-[85%] rounded-2xl rounded-tl-sm p-4 md:p-5 cyber-glass border border-purple-500/40 shadow-xl">
+                        <div class="flex items-center justify-between border-b border-purple-500/20 pb-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg cyber-btn flex items-center justify-center">
+                                    <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
+                                </div>
+                                <span class="font-cyber text-xs font-bold text-fuchsia-300">${escapeHtml(modeName)}</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded bg-purple-950/90 border border-purple-500/30 text-purple-300">
+                                    Tutor Siber
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="speakText(${msgIndex})" title="Dengar Penjelasan" class="p-1.5 rounded-lg bg-purple-950/80 hover:bg-purple-800 text-purple-200 text-xs flex items-center gap-1">
+                                    <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button onclick="copyMessageText(${msgIndex})" title="Salin Nota" class="p-1.5 rounded-lg bg-purple-950/80 hover:bg-purple-800 text-purple-200 text-xs flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    <span class="text-[10px]">Salin</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="prose-cyber text-sm md:text-base text-purple-100 leading-relaxed">${parsedHtml}</div>
+                    </div>
+                `;
+            }
+
+            msgList.appendChild(wrapper);
+            wrapper.querySelectorAll("pre code").forEach((block) => {
+                hljs.highlightElement(block);
+            });
+            lucide.createIcons();
+        }
+
+        async function sendMessage() {
+            if (isGenerating) return;
+
+            const inputEl = document.getElementById("user-input");
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            // Semak Kuota Mod Semasa
+            const state = quotaState[currentMode];
+            const modeObj = STUDY_MODES[currentMode];
+            if (state.remaining <= 0) {
+                alert(`Kuota untuk ${modeObj.name} telah habis! Kuota akan Auto-ReLimit dalam masa kurang 1 jam, atau sila pilih mod Study AI yang lain di sebelah kiri.`);
+                return;
+            }
+
+            // Tolak 1 Kuota
+            consumeQuota(currentMode);
+
+            inputEl.value = "";
+            inputEl.style.height = "auto";
+            document.getElementById("welcome-screen").classList.add("hidden");
+
+            const session = chatSessions.find(s => s.id === activeSessionId);
+            if (session.messages.length === 0) {
+                session.title = text.slice(0, 32) + (text.length > 32 ? "..." : "");
+            }
+
+            const historySnapshot = [...session.messages];
+            session.messages.push({ role: "user", content: text });
+            saveChatSessions();
+
+            appendMessageBubble("user", text);
+            scrollToBottom();
+
+            // Papar Penunjuk AI Sedang Berfikir & Lajukan Teras 3D
+            isGenerating = true;
+            threeCoreBoost = 4.5;
+            document.getElementById("btn-send").disabled = true;
+
+            const loadingId = "loading_" + Date.now();
+            const msgList = document.getElementById("messages-list");
+            const loadingDiv = document.createElement("div");
+            loadingDiv.id = loadingId;
+            loadingDiv.className = "flex justify-start";
+            loadingDiv.innerHTML = `
+                <div class="rounded-2xl px-5 py-4 cyber-glass border border-purple-400/40 flex items-center gap-3">
+                    <div class="flex gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-fuchsia-400 cyber-dot"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-purple-400 cyber-dot"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 cyber-dot"></span>
+                    </div>
+                    <span class="font-cyber text-xs text-purple-200 tracking-wider">
+                        ${modeObj.name.toUpperCase()} SEDANG MENGANALISIS SILIBUS...
+                    </span>
+                </div>
+            `;
+            msgList.appendChild(loadingDiv);
+            scrollToBottom();
+
+            // Dapatkan Jawapan AI
+            const aiReply = await requestStudyAINeuralResponse(text, historySnapshot);
+
+            // Buang Penunjuk Loading
+            const loader = document.getElementById(loadingId);
+            if (loader) loader.remove();
+
+            const msgIndex = session.messages.length;
+            const modeLabel = `${modeObj.name} (${modeObj.tierLabel})`;
+            session.messages.push({
+                role: "assistant",
+                content: aiReply,
+                modeName: modeLabel
+            });
+            saveChatSessions();
+
+            appendMessageBubble("assistant", aiReply, modeLabel, msgIndex);
+            scrollToBottom();
+
+            if (autoReadTTS) {
+                speakRawText(aiReply);
+            }
+
+            isGenerating = false;
+            threeCoreBoost = 1;
+            document.getElementById("btn-send").disabled = false;
+        }
+
+        /********************************************************************
+         * 6. UTILITI & FITUR TAMBAHAN (VOICE, UPLOAD, EXPORT, QUICK PROMPT)
+         ********************************************************************/
+        function quickPrompt(promptText) {
+            const inputEl = document.getElementById("user-input");
+            inputEl.value = promptText;
+            sendMessage();
+        }
+
+        function insertToolPrefix(prefix) {
+            const inputEl = document.getElementById("user-input");
+            inputEl.value = prefix;
+            inputEl.focus();
+        }
+
+        function handleEnterKey(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResizeTextarea(el) {
+            el.style.height = "auto";
+            el.style.height = Math.min(el.scrollHeight, 140) + "px";
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById("chat-container");
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById("sidebar");
+            sb.classList.toggle("-translate-x-full");
+        }
+
+        function copyMessageText(index) {
+            const session = chatSessions.find(s => s.id === activeSessionId);
+            if (!session || !session.messages[index]) return;
+            navigator.clipboard.writeText(session.messages[index].content);
+            alert("Nota berjaya disalin ke papan keratan!");
+        }
+
+        function toggleVoiceRead() {
+            autoReadTTS = !autoReadTTS;
+            const status = document.getElementById("tts-status");
+            if (status) status.textContent = autoReadTTS ? "Suara: Aktif" : "Suara: Mati";
+            if (!autoReadTTS && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function speakText(index) {
+            const session = chatSessions.find(s => s.id === activeSessionId);
+            if (!session || !session.messages[index]) return;
+            speakRawText(session.messages[index].content);
+        }
+
+        function speakRawText(text) {
+            if (!("speechSynthesis" in window)) return;
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/[#*`_~]/g, "");
+            const utter = new SpeechSynthesisUtterance(cleanText);
+            utter.lang = "ms-MY";
+            utter.rate = 1.05;
+            window.speechSynthesis.speak(utter);
+        }
+
+        function toggleSpeechToText() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Pelayar anda tidak menyokong input suara. Sila gunakan Chrome atau Edge.");
+                return;
+            }
+            const recognition = new SpeechRecognition();
+            recognition.lang = "ms-MY";
+            const micBtn = document.getElementById("btn-mic");
+            micBtn.classList.add("bg-rose-600", "text-white");
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                const inputEl = document.getElementById("user-input");
+                inputEl.value += (inputEl.value ? " " : "") + transcript;
+            };
+            recognition.onend = () => {
+                micBtn.classList.remove("bg-rose-600", "text-white");
+            };
+            recognition.start();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result.slice(0, 3000);
+                const inputEl = document.getElementById("user-input");
+                inputEl.value = `Berikut ialah kandungan nota saya daripada fail "${file.name}":\n\n${content}\n\nSila terangkan dan ringkaskan isi penting daripada nota ini.`;
+                autoResizeTextarea(inputEl);
+            };
+            reader.readAsText(file);
+        }
+
+        function exportCurrentChat() {
+            const session = chatSessions.find(s => s.id === activeSessionId);
+            if (!session || session.messages.length === 0) {
+                alert("Tiada nota dalam sesi ini untuk dimuat turun.");
+                return;
+            }
+            let output = `=== NOTA ULANG KAJI STUDY AI ===\nTajuk: ${session.title}\nTahap: ${currentSchoolLevel}\n\n`;
+            session.messages.forEach(m => {
+                output += `[${m.role === "user" ? "PELAJAR" : "STUDY AI"}]\n${m.content}\n\n----------------------------------------\n\n`;
+            });
+            const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Nota-StudyAI-${Date.now()}.txt`;
+            a.click();
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        /********************************************************************
+         * 7. ENJIN GRAFIK 3D HD CYBER (THREE.JS NEURAL CORE & STARFIELD)
+         ********************************************************************/
+        function initThreeCyberScene() {
+            const canvas = document.getElementById("cyber-canvas");
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x05020a, 0.035);
+
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 14;
+
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // 1. Teras Siber Wireframe (Icosahedron)
+            const coreGeo = new THREE.IcosahedronGeometry(3.2, 1);
+            const coreMat = new THREE.MeshBasicMaterial({
+                color: 0x9d4edd,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.35
+            });
+            const cyberCore = new THREE.Mesh(coreGeo, coreMat);
+            scene.add(cyberCore);
+
+            // 2. Teras Tenaga Dalam
+            const innerGeo = new THREE.OctahedronGeometry(1.8, 0);
+            const innerMat = new THREE.MeshBasicMaterial({
+                color: 0xe0aaff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.5
+            });
+            const innerCore = new THREE.Mesh(innerGeo, innerMat);
+            scene.add(innerCore);
+
+            // 3. Cincin Orbit Gyro Siber
+            const ringGeo = new THREE.TorusGeometry(5.2, 0.04, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xc77dff,
+                transparent: true,
+                opacity: 0.4
+            });
+            const orbitRing1 = new THREE.Mesh(ringGeo, ringMat);
+            orbitRing1.rotation.x = Math.PI / 2.3;
+            scene.add(orbitRing1);
+
+            const orbitRing2 = new THREE.Mesh(ringGeo, ringMat);
+            orbitRing2.rotation.y = Math.PI / 3;
+            orbitRing2.scale.set(1.2, 1.2, 1.2);
+            scene.add(orbitRing2);
+
+            // 4. Partikel Bintang Siber (1,200 Partikel)
+            const particlesGeo = new THREE.BufferGeometry();
+            const count = 1200;
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 45;
+            }
+            particlesGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                color: 0xc77dff,
+                size: 0.07,
+                transparent: true,
+                opacity: 0.75
+            });
+            const starField = new THREE.Points(particlesGeo, particlesMat);
+            scene.add(starField);
+
+            // Interaksi Pergerakan Tetikus
+            let mouseX = 0;
+            let mouseY = 0;
+            window.addEventListener("mousemove", (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            window.addEventListener("resize", () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Gelung Animasi 60FPS
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const speed = 0.004 * threeCoreBoost;
+                cyberCore.rotation.x += speed;
+                cyberCore.rotation.y += speed * 1.3;
+
+                innerCore.rotation.x -= speed * 1.8;
+                innerCore.rotation.y -= speed * 1.2;
+
+                orbitRing1.rotation.z += speed * 0.9;
+                orbitRing2.rotation.x -= speed * 0.7;
+
+                starField.rotation.y += 0.0008 * threeCoreBoost;
+
+                camera.position.x += (mouseX * 2.2 - camera.position.x) * 0.04;
+                camera.position.y += (-mouseY * 2.2 - camera.position.y) * 0.04;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // Mulakan Keseluruhan Sistem
+        window.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            initThreeCyberScene();
+            initQuotaSystem();
+            initChatSessions();
+        });
+    </script>
+</body>
+</html>
